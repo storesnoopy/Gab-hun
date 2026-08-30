@@ -39,13 +39,17 @@ local Window = WindUI:CreateWindow({
 })
 
 --============================================================--
--- ABA PERSONAGEM
+--                    PERSONAGEM                              --
 --============================================================--
 
 local CharacterTab = Window:Tab({
     Title = "Personagem",
     Icon = "user"
 })
+
+--============================================================--
+-- COPIAR TEXTO
+--============================================================--
 
 local function CopyText(Text)
 
@@ -54,6 +58,7 @@ local function CopyText(Text)
     end
 
     if setclipboard then
+
         setclipboard(Text)
 
         WindUI:Notify({
@@ -63,6 +68,7 @@ local function CopyText(Text)
         })
 
     elseif toclipboard then
+
         toclipboard(Text)
 
         WindUI:Notify({
@@ -72,6 +78,7 @@ local function CopyText(Text)
         })
 
     else
+
         WindUI:Notify({
             Title = "Gab RP Hub",
             Content = "Seu ambiente não suporta copiar.",
@@ -81,7 +88,7 @@ local function CopyText(Text)
 end
 
 --============================================================--
--- BIO
+-- BIOS
 --============================================================--
 
 local BioSection = CharacterTab:Section({
@@ -134,11 +141,13 @@ BioSection:Button({
     Callback = function()
 
         if not SelectedBio then
+
             WindUI:Notify({
                 Title = "Gab RP Hub",
                 Content = "Selecione uma bio primeiro.",
                 Duration = 3
             })
+
             return
         end
 
@@ -257,13 +266,17 @@ RankSection:Button({
         local GeneratedBio
 
         if HasRCT then
+
             GeneratedBio =
                 RankName ..
                 " THE VOLK ANGB [RCT] 🇺🇸"
+
         else
+
             GeneratedBio =
                 RankName ..
                 " THE VOLK ANGB 🇺🇸"
+
         end
 
         CopyText(GeneratedBio)
@@ -273,12 +286,12 @@ RankSection:Button({
 RankSection:Paragraph({
     Title = "Sistema RCT",
     Desc =
-        "Se a patente tiver RCT, será colocado [RCT]. "
+        "Se tiver RCT, será colocado [RCT]. "
         .. "Caso contrário, a sigla não será adicionada."
 })
 
 --============================================================--
---                    ABA COMANDO RP                          --
+--                    COMANDO RP                              --
 --============================================================--
 
 local RPCommandTab = Window:Tab({
@@ -286,12 +299,9 @@ local RPCommandTab = Window:Tab({
     Icon = "terminal"
 })
 
-local CommandsSection = RPCommandTab:Section({
-    Title = "Comandos RP",
-    Box = true,
-    BoxBorder = true,
-    Opened = true
-})
+--============================================================--
+-- FUNÇÃO CHAT
+--============================================================--
 
 local function SendRPCommand(Command)
 
@@ -308,6 +318,7 @@ local function SendRPCommand(Command)
             Channels:FindFirstChild("RBXGeneral")
 
         if General then
+
             General:SendAsync(Command)
 
             WindUI:Notify({
@@ -326,6 +337,17 @@ local function SendRPCommand(Command)
         Duration = 3
     })
 end
+
+--============================================================--
+-- COMANDOS PRINCIPAIS
+--============================================================--
+
+local CommandsSection = RPCommandTab:Section({
+    Title = "Comandos RP",
+    Box = true,
+    BoxBorder = true,
+    Opened = true
+})
 
 CommandsSection:Button({
     Title = "/Render",
@@ -376,7 +398,7 @@ CommandsSection:Button({
 })
 
 --============================================================--
--- TIROS RP
+-- COMANDOS DE TIRO
 --============================================================--
 
 local TiroSection = RPCommandTab:Section({
@@ -410,13 +432,102 @@ for _, Command in ipairs(Tiros) do
 end
 
 --============================================================--
---                        ABA ESP                             --
+-- COMANDO PERSONALIZADO
+--============================================================--
+
+local CustomCommandSection = RPCommandTab:Section({
+    Title = "Criar Comando Personalizado",
+    Box = true,
+    BoxBorder = true,
+    Opened = true
+})
+
+local CustomCommand = ""
+
+-- Fica somente na memória desta execução
+local CustomCommands = {}
+
+CustomCommandSection:Input({
+    Title = "Novo Comando",
+    Desc = "Digite o comando que deseja criar.",
+    Placeholder = "Ex: /PATROL THE VOLK ANGB 🇺🇸",
+
+    Callback = function(Value)
+        CustomCommand = Value
+    end
+})
+
+local CustomCommandList = RPCommandTab:Section({
+    Title = "Meus Comandos",
+    Box = true,
+    BoxBorder = true,
+    Opened = true
+})
+
+CustomCommandSection:Button({
+    Title = "Adicionar Comando",
+    Desc = "Salva somente enquanto o script estiver aberto.",
+    Icon = "plus",
+
+    Callback = function()
+
+        local Command = CustomCommand
+
+        if not Command or Command:match("^%s*$") then
+
+            WindUI:Notify({
+                Title = "Gab RP Hub",
+                Content = "Digite um comando primeiro.",
+                Duration = 3
+            })
+
+            return
+        end
+
+        table.insert(
+            CustomCommands,
+            Command
+        )
+
+        CustomCommandList:Button({
+            Title = Command,
+            Desc = "Clique para enviar ao chat.",
+            Icon = "send",
+
+            Callback = function()
+                SendRPCommand(Command)
+            end
+        })
+
+        CustomCommand = ""
+
+        WindUI:Notify({
+            Title = "Gab RP Hub",
+            Content = "Comando personalizado adicionado!",
+            Duration = 2
+        })
+    end
+})
+
+CustomCommandSection:Paragraph({
+    Title = "Salvamento temporário",
+    Desc =
+        "Os comandos personalizados existem somente "
+        .. "durante esta execução do Gab RP Hub."
+})
+
+--============================================================--
+--                         ABA ESP                             --
 --============================================================--
 
 local ESPTab = Window:Tab({
     Title = "ESP",
     Icon = "eye"
 })
+
+--============================================================--
+-- ESP USERNAME
+--============================================================--
 
 local ESPSection = ESPTab:Section({
     Title = "ESP Username",
@@ -482,7 +593,10 @@ local function CreateESP(Player)
 
     Text.BackgroundTransparency = 1
     Text.Size = UDim2.fromScale(1, 1)
+
+    -- Username real
     Text.Text = "@" .. Player.Name
+
     Text.TextScaled = true
     Text.Font = Enum.Font.GothamBold
     Text.TextStrokeTransparency = 0.3
@@ -517,9 +631,15 @@ ESPSection:Toggle({
     Callback = function(Value)
 
         ESPEnabled = Value
+
         UpdateESP()
 
     end
+})
+
+ESPSection:Paragraph({
+    Title = "Username",
+    Desc = "Mostra o nome de usuário real."
 })
 
 --============================================================--
@@ -559,9 +679,7 @@ end
 local PlayerDropdown = ViewSection:Dropdown({
 
     Title = "Selecionar Jogador",
-
     Desc = "Escolha um jogador.",
-
     Values = GetPlayerNames(),
 
     Callback = function(Value)
@@ -575,7 +693,6 @@ local PlayerDropdown = ViewSection:Dropdown({
 ViewSection:Button({
 
     Title = "Atualizar Lista",
-
     Icon = "refresh-cw",
 
     Callback = function()
@@ -596,9 +713,7 @@ ViewSection:Button({
 ViewSection:Button({
 
     Title = "View Player",
-
-    Desc = "Acompanhar a câmera do jogador selecionado.",
-
+    Desc = "Acompanhar a câmera do jogador.",
     Icon = "eye",
 
     Callback = function()
@@ -652,9 +767,7 @@ ViewSection:Button({
 ViewSection:Button({
 
     Title = "Parar View",
-
     Desc = "Voltar a câmera para seu personagem.",
-
     Icon = "camera",
 
     Callback = function()
@@ -686,7 +799,7 @@ ViewSection:Button({
 })
 
 --============================================================--
--- EVENTOS ESP
+-- EVENTOS
 --============================================================--
 
 Players.PlayerAdded:Connect(function(Player)
@@ -745,6 +858,8 @@ print("          GAB RP HUB             ")
 print("================================")
 print("Personagem: OK")
 print("Comando RP: OK")
+print("Tiros RP: OK")
+print("Comando Personalizado: OK")
 print("ESP Username: OK")
 print("View Player: OK")
 print("================================")
