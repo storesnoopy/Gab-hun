@@ -1,6 +1,6 @@
 --============================================================--
---                         GAB RP HUB                         --
---                           WINDUI                           --
+--                       GAB RP HUB                           --
+--                       FLUENT UI                            --
 --============================================================--
 
 local Players = game:GetService("Players")
@@ -9,43 +9,77 @@ local TextChatService = game:GetService("TextChatService")
 local LocalPlayer = Players.LocalPlayer
 
 --============================================================--
--- WINDUI
+-- FLUENT
 --============================================================--
 
-local WindUI = loadstring(game:HttpGet(
-    "https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"
+local Fluent = loadstring(game:HttpGet(
+    "https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"
 ))()
 
-local Window = WindUI:CreateWindow({
+local SaveManager = loadstring(game:HttpGet(
+    "https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"
+))()
+
+local InterfaceManager = loadstring(game:HttpGet(
+    "https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"
+))()
+
+--============================================================--
+-- CONFIGURAÇÃO
+--============================================================--
+
+local BackgroundImage =
+    "rbxassetid://116020967072095"
+
+local Window = Fluent:CreateWindow({
     Title = "Gab RP Hub",
-    Icon = "user",
-    Author = "Gab",
-    Folder = "Gab RP Hub",
-
-    Size = UDim2.fromOffset(580, 460),
-    MinSize = Vector2.new(500, 350),
-    MaxSize = Vector2.new(850, 650),
-
-    ToggleKey = Enum.KeyCode.RightShift,
+    SubTitle = "VOLK ANGB 🇺🇸",
+    TabWidth = 160,
+    Size = UDim2.fromOffset(600, 500),
+    Acrylic = true,
     Theme = "Dark",
-    Resizable = true,
-
-    OpenButton = {
-        Title = "Abrir Gab RP",
-        Icon = "user",
-        Enabled = true,
-        Draggable = true
-    }
+    MinimizeKey = Enum.KeyCode.LeftControl
 })
 
 --============================================================--
---                    PERSONAGEM                              --
+-- ABAS
 --============================================================--
 
-local CharacterTab = Window:Tab({
-    Title = "Personagem",
-    Icon = "user"
-})
+local Tabs = {
+    Personagem = Window:AddTab({
+        Title = "Personagem",
+        Icon = "user"
+    }),
+
+    ComandoRP = Window:AddTab({
+        Title = "Comando RP",
+        Icon = "terminal"
+    }),
+
+    ESP = Window:AddTab({
+        Title = "ESP",
+        Icon = "eye"
+    }),
+
+    Config = Window:AddTab({
+        Title = "Configurações",
+        Icon = "settings"
+    })
+}
+
+--============================================================--
+-- NOTIFICAÇÃO
+--============================================================--
+
+local function Notify(Title, Content)
+
+    Fluent:Notify({
+        Title = Title,
+        Content = Content,
+        Duration = 3
+    })
+
+end
 
 --============================================================--
 -- COPIAR TEXTO
@@ -61,46 +95,37 @@ local function CopyText(Text)
 
         setclipboard(Text)
 
-        WindUI:Notify({
-            Title = "Gab RP Hub",
-            Content = "Copiado! Cole na bio do Brookhaven.",
-            Duration = 3
-        })
+        Notify(
+            "Gab RP Hub",
+            "Texto copiado!"
+        )
 
     elseif toclipboard then
 
         toclipboard(Text)
 
-        WindUI:Notify({
-            Title = "Gab RP Hub",
-            Content = "Copiado! Cole na bio do Brookhaven.",
-            Duration = 3
-        })
+        Notify(
+            "Gab RP Hub",
+            "Texto copiado!"
+        )
 
     else
 
-        WindUI:Notify({
-            Title = "Gab RP Hub",
-            Content = "Seu ambiente não suporta copiar.",
-            Duration = 4
-        })
+        Notify(
+            "Gab RP Hub",
+            "Seu ambiente não suporta copiar."
+        )
+
     end
 end
 
 --============================================================--
--- BIOS
+-- PERSONAGEM
 --============================================================--
 
-local BioSection = CharacterTab:Section({
-    Title = "Bio",
-    Box = true,
-    BoxBorder = true,
-    Opened = true
-})
-
-BioSection:Paragraph({
+Tabs.Personagem:AddParagraph({
     Title = "Bio do RP",
-    Desc = "Obs: Será copiado e coloque na bio."
+    Content = "Escolha uma bio e copie para colocar no Brookhaven."
 })
 
 local Bios = {
@@ -121,100 +146,82 @@ local Bios = {
     "🇺🇸 VOLK ANGB | RCT - RECRUTA"
 }
 
-local SelectedBio
+local SelectedBio = nil
 
-BioSection:Dropdown({
+Tabs.Personagem:AddDropdown("BioDropdown", {
     Title = "Selecionar Bio",
-    Desc = "Escolha uma bio da VOLK ANGB.",
     Values = Bios,
+    Multi = false,
+    Default = nil
+}):OnChanged(function(Value)
 
-    Callback = function(Value)
-        SelectedBio = Value
-    end
-})
+    SelectedBio = Value
 
-BioSection:Button({
+end)
+
+Tabs.Personagem:AddButton({
     Title = "Copiar Bio Selecionada",
-    Desc = "Obs: Será copiado e coloque na bio.",
-    Icon = "copy",
+
+    Description = "Obs: Será copiado e coloque na bio.",
 
     Callback = function()
 
         if not SelectedBio then
 
-            WindUI:Notify({
-                Title = "Gab RP Hub",
-                Content = "Selecione uma bio primeiro.",
-                Duration = 3
-            })
+            Notify(
+                "Gab RP Hub",
+                "Selecione uma bio primeiro."
+            )
 
             return
         end
 
         CopyText(SelectedBio)
+
     end
 })
-
---============================================================--
--- BIOS RÁPIDAS
---============================================================--
-
-local QuickSection = CharacterTab:Section({
-    Title = "Bios Rápidas",
-    Box = true,
-    BoxBorder = true,
-    Opened = false
-})
-
-for Index, Bio in ipairs(Bios) do
-
-    QuickSection:Button({
-        Title = "Bio " .. Index,
-        Desc = Bio,
-        Icon = "copy",
-
-        Callback = function()
-            CopyText(Bio)
-        end
-    })
-
-end
 
 --============================================================--
 -- PERSONALIZAR BIO
 --============================================================--
 
-local CustomSection = CharacterTab:Section({
+Tabs.Personagem:AddParagraph({
     Title = "Personalizar Bio",
-    Box = true,
-    BoxBorder = true,
-    Opened = true
+    Content = "Crie sua própria bio."
 })
 
 local CustomBio = ""
 
-CustomSection:Input({
+Tabs.Personagem:AddInput("CustomBio", {
     Title = "Sua Bio",
-    Desc = "Digite uma bio personalizada.",
-    Placeholder = "Digite sua bio aqui...",
+    Description = "Digite sua bio personalizada.",
+    Placeholder = "Digite aqui...",
+    Default = "",
+    Numeric = false,
+    Finished = false
+}):OnChanged(function(Value)
 
-    Callback = function(Value)
-        CustomBio = Value
-    end
-})
+    CustomBio = Value
 
-CustomSection:Button({
+end)
+
+Tabs.Personagem:AddButton({
     Title = "Copiar Bio Personalizada",
-    Desc = "Obs: Será copiado e coloque na bio.",
-    Icon = "copy",
 
     Callback = function()
 
         if CustomBio == "" then
+
+            Notify(
+                "Gab RP Hub",
+                "Digite uma bio primeiro."
+            )
+
             return
         end
 
         CopyText(CustomBio)
+
     end
 })
 
@@ -222,28 +229,26 @@ CustomSection:Button({
 -- PERSONALIZAR PATENTE
 --============================================================--
 
-local RankSection = CharacterTab:Section({
+Tabs.Personagem:AddParagraph({
     Title = "Personalizar Patente",
-    Box = true,
-    BoxBorder = true,
-    Opened = true
+    Content = "Exemplo: RCT - Recruta"
 })
 
 local RankText = ""
 
-RankSection:Input({
+Tabs.Personagem:AddInput("RankInput", {
     Title = "Patente",
-    Desc = "Exemplo: RCT - Recruta",
+    Description = "Digite a patente.",
     Placeholder = "RCT - Recruta",
+    Default = ""
+}):OnChanged(function(Value)
 
-    Callback = function(Value)
-        RankText = Value
-    end
-})
+    RankText = Value
 
-RankSection:Button({
+end)
+
+Tabs.Personagem:AddButton({
     Title = "Gerar e Copiar Bio",
-    Icon = "badge",
 
     Callback = function()
 
@@ -251,14 +256,16 @@ RankSection:Button({
             return
         end
 
-        local UpperText = string.upper(RankText)
+        local UpperText =
+            string.upper(RankText)
 
-        local HasRCT = string.find(
-            UpperText,
-            "RCT",
-            1,
-            true
-        )
+        local HasRCT =
+            string.find(
+                UpperText,
+                "RCT",
+                1,
+                true
+            )
 
         local RankName =
             RankText:match("%-%s*(.+)") or RankText
@@ -280,28 +287,18 @@ RankSection:Button({
         end
 
         CopyText(GeneratedBio)
+
     end
 })
 
-RankSection:Paragraph({
-    Title = "Sistema RCT",
-    Desc =
-        "Se tiver RCT, será colocado [RCT]. "
-        .. "Caso contrário, a sigla não será adicionada."
+--============================================================--
+-- COMANDO RP
+--============================================================--
+
+Tabs.ComandoRP:AddParagraph({
+    Title = "Comandos RP",
+    Content = "Clique em um comando para enviá-lo ao chat."
 })
-
---============================================================--
---                    COMANDO RP                              --
---============================================================--
-
-local RPCommandTab = Window:Tab({
-    Title = "Comando RP",
-    Icon = "terminal"
-})
-
---============================================================--
--- FUNÇÃO CHAT
---============================================================--
 
 local function SendRPCommand(Command)
 
@@ -321,91 +318,89 @@ local function SendRPCommand(Command)
 
             General:SendAsync(Command)
 
-            WindUI:Notify({
-                Title = "Gab RP Hub",
-                Content = "Comando enviado!",
-                Duration = 2
-            })
+            Notify(
+                "Gab RP Hub",
+                "Comando enviado!"
+            )
 
             return
         end
     end
 
-    WindUI:Notify({
-        Title = "Gab RP Hub",
-        Content = "Chat não encontrado.",
-        Duration = 3
-    })
+    Notify(
+        "Gab RP Hub",
+        "Canal de chat não encontrado."
+    )
+
 end
 
 --============================================================--
--- COMANDOS PRINCIPAIS
+-- COMANDOS
 --============================================================--
 
-local CommandsSection = RPCommandTab:Section({
-    Title = "Comandos RP",
-    Box = true,
-    BoxBorder = true,
-    Opened = true
-})
-
-CommandsSection:Button({
+Tabs.ComandoRP:AddButton({
     Title = "/Render",
-    Desc = "THE VOLK ANGB 🇺🇸",
-    Icon = "send",
+
+    Description = "THE VOLK ANGB 🇺🇸",
 
     Callback = function()
+
         SendRPCommand(
             "/Render THE VOLK ANGB 🇺🇸"
         )
+
     end
 })
 
-CommandsSection:Button({
+Tabs.ComandoRP:AddButton({
     Title = "/KILL",
-    Desc = "PRECISÃO 90% • VENTO 30 KM POR HR",
-    Icon = "target",
+
+    Description = "PRECISÃO 90% • VENTO 30 KM POR HR",
 
     Callback = function()
+
         SendRPCommand(
             "/KILL PRECISÃO 90% VENTO 30 KM POR HR"
         )
+
     end
 })
 
-CommandsSection:Button({
+Tabs.ComandoRP:AddButton({
     Title = "/Algemar",
-    Desc = "PERDEU PRA THE VOLK 🤣🤣🇺🇸",
-    Icon = "lock",
+
+    Description = "PERDEU PRA THE VOLK 🤣🤣🇺🇸",
 
     Callback = function()
+
         SendRPCommand(
             "/Algemar PERDEU PRA THE VOLK🤣🤣🇺🇸"
         )
+
     end
 })
 
-CommandsSection:Button({
+Tabs.ComandoRP:AddButton({
     Title = "/FURA PNEU",
-    Desc = "THE VOLK ANGB",
-    Icon = "circle",
+
+    Description = "THE VOLK ANGB",
 
     Callback = function()
+
         SendRPCommand(
             "/FURA PNEU THE VOLK ANGB"
         )
+
     end
 })
 
 --============================================================--
--- COMANDOS DE TIRO
+-- TIROS RP
 --============================================================--
 
-local TiroSection = RPCommandTab:Section({
+Tabs.ComandoRP:AddParagraph({
     Title = "Comandos de Tiro RP",
-    Box = true,
-    BoxBorder = true,
-    Opened = true
+    Content = "Selecione a região."
 })
 
 local Tiros = {
@@ -419,13 +414,16 @@ local Tiros = {
 
 for _, Command in ipairs(Tiros) do
 
-    TiroSection:Button({
+    Tabs.ComandoRP:AddButton({
+
         Title = Command,
-        Desc = "Enviar comando ao chat.",
-        Icon = "crosshair",
+
+        Description = "Enviar comando ao chat.",
 
         Callback = function()
+
             SendRPCommand(Command)
+
         end
     })
 
@@ -435,431 +433,68 @@ end
 -- COMANDO PERSONALIZADO
 --============================================================--
 
-local CustomCommandSection = RPCommandTab:Section({
+Tabs.ComandoRP:AddParagraph({
     Title = "Criar Comando Personalizado",
-    Box = true,
-    BoxBorder = true,
-    Opened = true
+    Content =
+        "Os comandos ficam somente durante esta execução."
 })
 
 local CustomCommand = ""
 
--- Fica somente na memória desta execução
+Tabs.ComandoRP:AddInput("CustomCommand", {
+
+    Title = "Novo Comando",
+
+    Description = "Digite o comando.",
+
+    Placeholder =
+        "Ex: /PATROL THE VOLK ANGB 🇺🇸",
+
+    Default = ""
+
+}):OnChanged(function(Value)
+
+    CustomCommand = Value
+
+end)
+
+-- Comandos personalizados em memória
 local CustomCommands = {}
 
-CustomCommandSection:Input({
-    Title = "Novo Comando",
-    Desc = "Digite o comando que deseja criar.",
-    Placeholder = "Ex: /PATROL THE VOLK ANGB 🇺🇸",
+Tabs.ComandoRP:AddButton({
 
-    Callback = function(Value)
-        CustomCommand = Value
-    end
-})
-
-local CustomCommandList = RPCommandTab:Section({
-    Title = "Meus Comandos",
-    Box = true,
-    BoxBorder = true,
-    Opened = true
-})
-
-CustomCommandSection:Button({
     Title = "Adicionar Comando",
-    Desc = "Salva somente enquanto o script estiver aberto.",
-    Icon = "plus",
+
+    Description =
+        "Adiciona somente durante esta execução.",
 
     Callback = function()
 
-        local Command = CustomCommand
+        if not CustomCommand
+            or CustomCommand:match("^%s*$") then
 
-        if not Command or Command:match("^%s*$") then
-
-            WindUI:Notify({
-                Title = "Gab RP Hub",
-                Content = "Digite um comando primeiro.",
-                Duration = 3
-            })
+            Notify(
+                "Gab RP Hub",
+                "Digite um comando primeiro."
+            )
 
             return
         end
 
         table.insert(
             CustomCommands,
-            Command
+            CustomCommand
         )
 
-        CustomCommandList:Button({
-            Title = Command,
-            Desc = "Clique para enviar ao chat.",
-            Icon = "send",
-
-            Callback = function()
-                SendRPCommand(Command)
-            end
-        })
+        Notify(
+            "Gab RP Hub",
+            "Comando adicionado!"
+        )
 
         CustomCommand = ""
 
-        WindUI:Notify({
-            Title = "Gab RP Hub",
-            Content = "Comando personalizado adicionado!",
-            Duration = 2
-        })
     end
 })
 
-CustomCommandSection:Paragraph({
-    Title = "Salvamento temporário",
-    Desc =
-        "Os comandos personalizados existem somente "
-        .. "durante esta execução do Gab RP Hub."
-})
-
---============================================================--
---                         ABA ESP                             --
---============================================================--
-
-local ESPTab = Window:Tab({
-    Title = "ESP",
-    Icon = "eye"
-})
-
---============================================================--
--- ESP USERNAME
---============================================================--
-
-local ESPSection = ESPTab:Section({
-    Title = "ESP Username",
-    Box = true,
-    BoxBorder = true,
-    Opened = true
-})
-
-local ESPEnabled = false
-local ESPObjects = {}
-
-local function RemoveESP(Player)
-
-    if not ESPObjects[Player] then
-        return
-    end
-
-    for _, Object in ipairs(ESPObjects[Player]) do
-
-        if Object and Object.Parent then
-            Object:Destroy()
-        end
-
-    end
-
-    ESPObjects[Player] = nil
-end
-
-local function CreateESP(Player)
-
-    if Player == LocalPlayer then
-        return
-    end
-
-    if not ESPEnabled then
-        return
-    end
-
-    local Character = Player.Character
-
-    if not Character then
-        return
-    end
-
-    local Head = Character:FindFirstChild("Head")
-
-    if not Head then
-        return
-    end
-
-    RemoveESP(Player)
-
-    local Billboard = Instance.new("BillboardGui")
-
-    Billboard.Name = "GabESP"
-    Billboard.Adornee = Head
-    Billboard.Size = UDim2.fromOffset(220, 45)
-    Billboard.StudsOffset = Vector3.new(0, 3, 0)
-    Billboard.AlwaysOnTop = true
-    Billboard.Parent = Head
-
-    local Text = Instance.new("TextLabel")
-
-    Text.BackgroundTransparency = 1
-    Text.Size = UDim2.fromScale(1, 1)
-
-    -- Username real
-    Text.Text = "@" .. Player.Name
-
-    Text.TextScaled = true
-    Text.Font = Enum.Font.GothamBold
-    Text.TextStrokeTransparency = 0.3
-    Text.Parent = Billboard
-
-    ESPObjects[Player] = {
-        Billboard
-    }
-end
-
-local function UpdateESP()
-
-    for _, Player in ipairs(Players:GetPlayers()) do
-
-        if Player ~= LocalPlayer then
-
-            if ESPEnabled then
-                CreateESP(Player)
-            else
-                RemoveESP(Player)
-            end
-
-        end
-    end
-end
-
-ESPSection:Toggle({
-    Title = "ESP Username",
-    Desc = "Mostra o @username acima dos jogadores.",
-    Default = false,
-
-    Callback = function(Value)
-
-        ESPEnabled = Value
-
-        UpdateESP()
-
-    end
-})
-
-ESPSection:Paragraph({
-    Title = "Username",
-    Desc = "Mostra o nome de usuário real."
-})
-
---============================================================--
--- VIEW PLAYER
---============================================================--
-
-local ViewSection = ESPTab:Section({
-    Title = "View Player",
-    Box = true,
-    BoxBorder = true,
-    Opened = true
-})
-
-local SelectedPlayer = nil
-local ViewingPlayer = nil
-
-local function GetPlayerNames()
-
-    local List = {}
-
-    for _, Player in ipairs(Players:GetPlayers()) do
-
-        if Player ~= LocalPlayer then
-            table.insert(
-                List,
-                Player.Name
-            )
-        end
-
-    end
-
-    table.sort(List)
-
-    return List
-end
-
-local PlayerDropdown = ViewSection:Dropdown({
-
-    Title = "Selecionar Jogador",
-    Desc = "Escolha um jogador.",
-    Values = GetPlayerNames(),
-
-    Callback = function(Value)
-
-        SelectedPlayer =
-            Players:FindFirstChild(Value)
-
-    end
-})
-
-ViewSection:Button({
-
-    Title = "Atualizar Lista",
-    Icon = "refresh-cw",
-
-    Callback = function()
-
-        PlayerDropdown:Refresh(
-            GetPlayerNames()
-        )
-
-        WindUI:Notify({
-            Title = "Gab RP Hub",
-            Content = "Lista atualizada.",
-            Duration = 2
-        })
-
-    end
-})
-
-ViewSection:Button({
-
-    Title = "View Player",
-    Desc = "Acompanhar a câmera do jogador.",
-    Icon = "eye",
-
-    Callback = function()
-
-        if not SelectedPlayer then
-
-            WindUI:Notify({
-                Title = "Gab RP Hub",
-                Content = "Selecione um jogador.",
-                Duration = 3
-            })
-
-            return
-        end
-
-        local Character =
-            SelectedPlayer.Character
-
-        local Humanoid =
-            Character and
-            Character:FindFirstChildOfClass(
-                "Humanoid"
-            )
-
-        if not Humanoid then
-
-            WindUI:Notify({
-                Title = "Gab RP Hub",
-                Content = "Personagem não encontrado.",
-                Duration = 3
-            })
-
-            return
-        end
-
-        workspace.CurrentCamera.CameraSubject =
-            Humanoid
-
-        ViewingPlayer = SelectedPlayer
-
-        WindUI:Notify({
-            Title = "Gab RP Hub",
-            Content =
-                "Visualizando @" ..
-                SelectedPlayer.Name,
-            Duration = 3
-        })
-    end
-})
-
-ViewSection:Button({
-
-    Title = "Parar View",
-    Desc = "Voltar a câmera para seu personagem.",
-    Icon = "camera",
-
-    Callback = function()
-
-        local Character =
-            LocalPlayer.Character
-
-        local Humanoid =
-            Character and
-            Character:FindFirstChildOfClass(
-                "Humanoid"
-            )
-
-        if Humanoid then
-
-            workspace.CurrentCamera.CameraSubject =
-                Humanoid
-
-        end
-
-        ViewingPlayer = nil
-
-        WindUI:Notify({
-            Title = "Gab RP Hub",
-            Content = "View encerrado.",
-            Duration = 2
-        })
-    end
-})
-
---============================================================--
--- EVENTOS
---============================================================--
-
-Players.PlayerAdded:Connect(function(Player)
-
-    Player.CharacterAdded:Connect(function()
-
-        task.wait(1)
-
-        if ESPEnabled then
-            CreateESP(Player)
-        end
-
-    end)
-end)
-
-Players.PlayerRemoving:Connect(function(Player)
-
-    RemoveESP(Player)
-
-    if ViewingPlayer == Player then
-
-        local Character =
-            LocalPlayer.Character
-
-        local Humanoid =
-            Character and
-            Character:FindFirstChildOfClass(
-                "Humanoid"
-            )
-
-        if Humanoid then
-
-            workspace.CurrentCamera.CameraSubject =
-                Humanoid
-
-        end
-
-        ViewingPlayer = nil
-    end
-end)
-
---============================================================--
--- FINAL
---============================================================--
-
-Window:Open()
-
-WindUI:Notify({
-    Title = "Gab RP Hub",
-    Content = "Gab RP Hub carregado!",
-    Duration = 4
-})
-
-print("================================")
-print("          GAB RP HUB             ")
-print("================================")
-print("Personagem: OK")
-print("Comando RP: OK")
-print("Tiros RP: OK")
-print("Comando Personalizado: OK")
-print("ESP Username: OK")
-print("View Player: OK")
-print("================================")
+Tabs.ComandoRP:AddParagraph({
+    Title = "Me
